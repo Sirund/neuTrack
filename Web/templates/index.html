@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuTrack</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #7200ca, #9a00e8);
+            color: #fff;
+        }
+
+        header {
+            background: linear-gradient(90deg, #7200ca, #9a00e8);
+            padding: 10px;
+            text-align: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 2px;
+        }
+
+        #map-window {
+            height: 650px;
+            background: #2c2c2c;
+        }
+
+        section {
+            padding: 30px;
+            margin: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 2px;
+        }
+
+        p {
+            line-height: 1.6;
+            color: #fff;
+        }
+
+        footer {
+            background: #ffffff;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .navbar {
+            background-color: #2980b9;
+            padding: 10px;
+            border-bottom: 2px solid #ffffff;
+        }
+
+        .navbar-brand {
+            color: #ffffff;
+        }
+
+        .container {
+            background-color: #2c2c2c;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        h1, h2,
+        p {
+            color: #fff;
+        }
+
+        #map-canvas {
+            height: 500px;
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        hr {
+            background-color: #3498db;
+        }
+
+        .logo {
+            max-width: 50%;
+            height: auto;
+            margin-bottom: 40px;
+            background: #f1f5f9;
+            margin-left: 40px;
+        }
+
+        .foot {
+            max-width: 50%;
+        }
+
+        .top {
+            background: #f1f5f9;
+        }
+
+        .team-members {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .team-member {
+            width: 100px;
+            height: 100px;
+            background: #2c2c2c;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            border: 2px solid #fff;
+            margin: 0 10px;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .team-member:hover {
+            background-color: #9a00e8;
+        }
+
+        .fhead {
+            margin-top: 40px;
+            font-size: 36px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 2px;
+        }
+
+        .team-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            margin: 20px;
+        }
+
+        .feature{
+            color: #9a00e8;
+        }
+
+        .fhead {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 24px;
+            margin-top: 0;
+        }
+
+        .drop {
+            text-align: center;
+            margin-top: 20px;
+            font-color: #9a00e8;
+        }
+
+        .location {
+            height: 300px;
+            margin-top: 50px;
+            margin-bottom: 50px;
+            color: #9a00e8;
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+</head>
+
+<body>
+
+    <div class="top">
+        <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Example Image" class="logo">
+    </div>
+    <div id="map-window">
+        <div class="container">
+            <div id="map-canvas"></div>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button  class="btn feature">
+                <a href="path"  class="btn feature">Find the Shortest Path</a>
+            </button>
+
+        </div>
+        <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+        <script>
+            var map;
+            var marker;
+            var lineCoordinates = [];
+
+            var initialize = function () {
+                map = new google.maps.Map(document.getElementById('map-canvas'), { center: { lat: 0, lng: 0 }, zoom: 2 });
+                marker = new google.maps.Marker({ map: map });
+
+                directionsService = new google.maps.DirectionsService();
+                directionsRenderer = new google.maps.DirectionsRenderer();
+                directionsRenderer.setMap(map);
+            
+                // Attach click event to the button
+                document.getElementById('shortestPathBtn').addEventListener('click', findShortestPath);
+            };
+
+            function findShortestPath() {
+                // Get user's current location or specify the start location
+                var startLocation = new google.maps.LatLng(START_LAT, START_LNG);
+            
+                // Specify the destination location (you may replace it with a specific location)
+                var endLocation = new google.maps.LatLng(END_LAT, END_LNG);
+            
+                var request = {
+                    origin: startLocation,
+                    destination: endLocation,
+                    travelMode: 'WALKING' // You can change the travel mode as needed
+                };
+            
+                directionsService.route(request, function (result, status) {
+                    if (status === 'OK') {
+                        directionsRenderer.setDirections(result);
+                    } else {
+                        console.error('Error:', status);
+                    }
+                });
+            }
+
+            const firebaseConfig = {
+                "apiKey": "AIzaSyArU2hVkqA7CCj00t26YzxSjyYx4TdmLs0",
+                "authDomain": "gps-tracker2-50503.firebaseapp.com",
+                "databaseURL": "https://gps-tracker2-50503-default-rtdb.firebaseio.com",
+                "projectId": "gps-tracker2-50503",
+                "storageBucket": "gps-tracker2-50503.appspot.com",
+                "messagingSenderId": "118394749599",
+                "appId": "1:118394749599:web:359b51af670a0d4e2ad8aa"
+              };              
+
+            firebase.initializeApp(firebaseConfig);
+
+            var db = firebase.database().ref();
+
+            db.on("value", function (snapshot) {
+                var gps = snapshot.val();
+                console.log(gps.LAT);
+                console.log(gps.LNG);
+
+                var lat = gps.LAT;
+                var lng = gps.LNG;
+
+                map.setCenter({ lat: lat, lng: lng, alt: 0 });
+                marker.setPosition({ lat: lat, lng: lng, alt: 0 });
+
+                lineCoordinates.push(new google.maps.LatLng(lat, lng));
+
+                var lineCoordinatesPath = new google.maps.Polyline({
+                    path: lineCoordinates,
+                    geodesic: true,
+                    strokeColor: '#2E10FF',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2
+                });
+
+                lineCoordinatesPath.setMap(map);
+            }, function (error) {
+                console.log("Error: " + error.code);
+            });
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyDEBBInkV7h3-eLbO19QEQVOgbpF7PwkMQ&callback=initialize"></script>
+    </div>
+
+    <section>
+        <div class="fhead">Key Features</div>
+        <p>Discover the powerful features that make NeuTrack stand out from the rest.</p>
+
+        <div class="drop">
+            <img src="{{ url_for('static', filename='image/location.png') }}" alt="Example Image" class="location">
+            <button class="btn feature" type="button" data-toggle="collapse" data-target="#feature1Collapse"
+                aria-expanded="false" aria-controls="feature1Collapse">
+                Shortest Path Finder
+            </button>
+            <div class="collapse" id="feature1Collapse">
+                <div class="card card-body feature">
+                    <div>Finds the shortest path for users to navigate roads and reach their destination safely.</div>
+                </div>
+            </div>
+        </div>
+
+        <div  class="drop">
+            <img src="{{ url_for('static', filename='image/headphone.png') }}" alt="Example Image" class="location">
+            <button class="btn feature" type="button" data-toggle="collapse" data-target="#feature2Collapse"
+                aria-expanded="false" aria-controls="feature2Collapse">
+                Voice Assistance
+            </button>
+            <div class="collapse" id="feature2Collapse">
+                <div class="card card-body feature">
+                    <div>Provides auditory guidance for visually impaired users, relaying important information about their surroundings and directions.
+                        Enables communication by allowing users to speak and the device transcribes their speech into text.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="drop">
+            <img src="{{ url_for('static', filename='image/home.png') }}" alt="Example Image" class="location">
+            <button class="btn feature" type="button" data-toggle="collapse" data-target="#feature3Collapse"
+                aria-expanded="false" aria-controls="feature3Collapse">
+                Safe Distance Limitation
+            </button>
+            <div class="collapse" id="feature3Collapse">
+                <div class="card card-body feature">
+                    <div>Limits the distance traveled by users with Alzheimer's to ensure they can safely return home using the shortest path.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="drop">
+            <img src="{{ url_for('static', filename='image/detect.png') }}" alt="Example Image" class="location">
+            <button class="btn feature" type="button" data-toggle="collapse" data-target="#feature4Collapse"
+                aria-expanded="false" aria-controls="feature4Collapse">
+                Object Recognition
+            </button>
+            <div class="collapse" id="feature4Collapse">
+                <div class="card card-body feature">
+                    <div>Utilizes object recognition technology to help users, particularly those with Alzheimer's, identify and remember people they are interacting with.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="drop">
+            <img src="{{ url_for('static', filename='image/warning.png') }}" alt="Example Image" class="location">
+            <button class="btn feature" type="button" data-toggle="collapse" data-target="#feature5Collapse"
+                aria-expanded="false" aria-controls="feature5Collapse">
+                Obstacles Avoidance
+            </button>
+            <div class="collapse" id="feature5Collapse">
+                <div class="card card-body feature">
+                    <div>UWhen an obstacle is detected within a distance of less than 70 centimeters, the device triggers a motor vibrator to provide haptic feedback to the user. The vibration signal alerts the user about the presence of obstacles, enhancing safety during navigation.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="fhead">Frequently Asked Questions</div>
+        <p>Uncover insights into NeuTrack's user-friendly features and enhance your experience.</p>
+
+        <div class="drop">
+            <button class="btn feature" type="button" data-toggle="collapse" data-target="#faqCollapse"
+                aria-expanded="false" aria-controls="faqCollapse">
+                What is NeuTrack, and how does it assist individuals with visual impairments?
+            </button>
+            <div class="collapse" id="faqCollapse">
+                <div class="card card-body feature">
+                    <div>NeuTrack is a smart glove designed to enhance the independence of visually impaired individuals and Alzheimer. It uses advanced technologies like Text-to-Speech, Speech-to-Text, and object recognition to provide real-time information about their surroundings, assist in navigation, and identify objects.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="drop">
+            <button class="btn feature" type="button" data-toggle="collapse" data-target="#faqCollapse2"
+                aria-expanded="false" aria-controls="faqCollapse2">
+                Is NeuTrack only for individuals with visual impairments, or can it be used by others?      
+            </button>
+            <div class="collapse" id="faqCollapse2">
+                <div class="card card-body feature">
+                    <div>While NeuTrack is designed with features catering to visual impairments and Alzheimer, its versatility makes it useful for a broader audience. The device's functionalities, such as Text-to-Speech and Speech-to-Text, can benefit a range of users.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="drop">
+            <button class="btn feature" type="button" data-toggle="collapse" data-target="#faqCollapse3"
+                aria-expanded="false" aria-controls="faqCollapse3">
+                What algorithm used in the GPS Tracking feature?      
+            </button>
+            <div class="collapse" id="faqCollapse3">
+                <div class="card card-body feature">
+                    <div>The A* Algorithm is employed for efficient pathfinding and navigation. It optimizes the route based on real-time GPS data, ensuring the wearer is guided along the safest and most accessible paths, particularly beneficial for individuals with visual impairments and Alzheimer.</div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <section>
+        <div class="fhead">Creators</div>
+        <p>Meet the brilliant minds behind NeuTrack and their journey in crafting this innovative solution.</p>
+        <div class="team-members">
+            <div class="team-member">Firania</div>
+            <div class="team-member">Arundaya</div>
+            <div class="team-member">Pelangi</div>
+        </div>
+    </section>
+
+    <footer>
+        <img src="{{ url_for('static', filename='image/foot.png') }}" alt="Example Image" class="foot">
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+</body>
+
+</html>
