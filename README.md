@@ -26,6 +26,7 @@ Next is the prototype appearance of the NeuTrack glove.
 ### Object Detection
 First go inside your virtual environment, then input this command to your terminal
 ```bash
+git clone https://github.com/Sirund/neuTrack.git
 cd neuTrack/Glove/object_detection
 sh setup.sh
 python3 detect.py --model efficientdet_lite0.tflite
@@ -35,6 +36,7 @@ python3 detect.py --model efficientdet_lite0.tflite
 Now you can setup your raspberry pi environment with following instruction from this website https://core-electronics.com.au/guides/face-identify-raspberry-pi/
 if you want to create your own face model, input your photos to folder with your name inside the data folder. Then run command,
 ```bash
+git clone https://github.com/Sirund/neuTrack.git
 cd ~/neuTrack/Glove/face_recognition
 python3 train_model.py
 ```
@@ -42,4 +44,13 @@ After that if you want to rocognize your face with the raspberry you can do this
 ```bash
 cd ~/neuTrack/Glove/face_recognition
 python3 facial_req.py
+```
+
+### Website
+If you want to run the website make sure that you have npm in your laptop
+```bash
+git clone https://github.com/Sirund/neuTrack.git
+cd ~/neuTrack/Web
+npm install
+npm run dev
 ```
