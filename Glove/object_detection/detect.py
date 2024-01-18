@@ -1,53 +1,27 @@
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Main script to run the object detection routine."""
 import argparse
 import sys
 import time
-import numpy as np
 
 import cv2
 from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
+import utils
 
-
-_MARGIN = 10  # pixels
-_ROW_SIZE = 10  # pixels
-_FONT_SIZE = 1
-_FONT_THICKNESS = 1
-_TEXT_COLOR = (0, 0, 255)  # red
-
-
-def visualize(
-    image: np.ndarray,
-    detection_result: processor.DetectionResult,
-) -> np.ndarray:
-  """Draws bounding boxes on the input image and return it.
-
-  Args:
-    image: The input RGB image.
-    detection_result: The list of all "Detection" entities to be visualize.
-
-  Returns:
-    Image with bounding boxes.
-  """
-  for detection in detection_result.detections:
-    # Draw bounding_box
-    bbox = detection.bounding_box
-    start_point = bbox.origin_x, bbox.origin_y
-    end_point = bbox.origin_x + bbox.width, bbox.origin_y + bbox.height
-    cv2.rectangle(image, start_point, end_point, _TEXT_COLOR, 3)
-
-    # Draw label and score
-    category = detection.categories[0]
-    category_name = category.category_name
-    probability = round(category.score, 2)
-    result_text = category_name + ' (' + str(probability) + ')'
-    text_location = (_MARGIN + bbox.origin_x,
-                     _MARGIN + _ROW_SIZE + bbox.origin_y)
-    cv2.putText(image, result_text, text_location, cv2.FONT_HERSHEY_PLAIN,
-                _FONT_SIZE, _TEXT_COLOR, _FONT_THICKNESS)
-
-  return image
 
 def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         enable_edgetpu: bool) -> None:
@@ -109,7 +83,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
     detection_result = detector.detect(input_tensor)
 
     # Draw keypoints and edges on input image
-    image = visualize(image, detection_result)
+    image = utils.visualize(image, detection_result)
 
     # Calculate the FPS
     if counter % fps_avg_frame_count == 0:
