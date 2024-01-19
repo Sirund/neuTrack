@@ -47,10 +47,9 @@ python3 facial_req.py
 ```
 
 ### Website
-If you want to run the website make sure that you have npm in your laptop
+If you want to run the website for monitoring the glove you can run this command
 ```bash
 git clone https://github.com/Sirund/neuTrack.git
 cd ~/neuTrack/Web
-npm install
-npm run dev
+python3 app.py
 ```
