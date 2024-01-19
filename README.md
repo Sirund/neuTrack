@@ -51,5 +51,6 @@ If you want to run the website for monitoring the glove you can run this command
 ```bash
 git clone https://github.com/Sirund/neuTrack.git
 cd ~/neuTrack/Web
+pip install -r requirements. txt
 python3 app.py
 ```
