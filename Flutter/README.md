@@ -1,10 +1,8 @@
-# space_pod
+# NeuTrack
 
-A new Flutter project.
+The Beginning of NeuTrack app development on Flutter. You can simply open this project on an IDE then connect it to an emulator.
 
 ## Getting Started
-
-This project is a starting point for a Flutter application.
 
 A few resources to get you started if this is your first Flutter project:
 
