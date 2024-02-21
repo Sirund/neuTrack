@@ -1,6 +1,6 @@
 # NeuTrack
 
-The Beginning of NeuTrack app development on Flutter. You can simply open this project on an IDE then connect it to an emulator.
+The beginning of NeuTrack app development on Flutter. You can simply open this project on an IDE then connect it to an emulator.
 
 ## Getting Started
 
