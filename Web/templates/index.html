@@ -28,7 +28,7 @@
         }
 
         #map-window {
-            height: 650px;
+            height: 750px;
             background: #2c2c2c;
         }
 
@@ -176,6 +176,16 @@
             margin-bottom: 50px;
             color: #9a00e8;
         }
+
+        @media only screen and (max-width: 600px) {
+        .location {
+            height: 200px;
+            width: 190px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            }
+        }
+
     </style>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -200,6 +210,9 @@
             <button  class="btn feature">
                 <a href="path"  class="btn feature">Find the Shortest Path</a>
             </button>
+            <button  class="btn feature">
+                <a href="https://gpt-video-jidefr.vercel.app/"  class="btn feature">Object Detection</a>
+            </button>
 
         </div>
         <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
@@ -218,21 +231,18 @@
                 directionsRenderer = new google.maps.DirectionsRenderer();
                 directionsRenderer.setMap(map);
             
-                // Attach click event to the button
                 document.getElementById('shortestPathBtn').addEventListener('click', findShortestPath);
             };
 
             function findShortestPath() {
-                // Get user's current location or specify the start location
                 var startLocation = new google.maps.LatLng(START_LAT, START_LNG);
             
-                // Specify the destination location (you may replace it with a specific location)
                 var endLocation = new google.maps.LatLng(END_LAT, END_LNG);
             
                 var request = {
                     origin: startLocation,
                     destination: endLocation,
-                    travelMode: 'WALKING' // You can change the travel mode as needed
+                    travelMode: 'WALKING' 
                 };
             
                 directionsService.route(request, function (result, status) {
@@ -245,14 +255,15 @@
             }
 
             const firebaseConfig = {
-                "apiKey": "AIzaSyArU2hVkqA7CCj00t26YzxSjyYx4TdmLs0",
-                "authDomain": "gps-tracker2-50503.firebaseapp.com",
-                "databaseURL": "https://gps-tracker2-50503-default-rtdb.firebaseio.com",
-                "projectId": "gps-tracker2-50503",
-                "storageBucket": "gps-tracker2-50503.appspot.com",
-                "messagingSenderId": "118394749599",
-                "appId": "1:118394749599:web:359b51af670a0d4e2ad8aa"
-              };              
+                "apiKey": "AIzaSyCY4A7oLi4YiPVMV1VLOw2bHv0487Ww9FU",
+                "authDomain": "gps5-1ffe7.firebaseapp.com",
+                "projectId": "gps5-1ffe7",
+                "storageBucket": "gps5-1ffe7.appspot.com",
+                "messagingSenderId": "1057275623362",
+                "appId": "1:1057275623362:web:6fa154dcc3df768c41485b",
+                "measurementId": "G-7NBKMLJHS8",
+                "databaseURL": "https://gps5-1ffe7-default-rtdb.firebaseio.com"
+            };             
 
             firebase.initializeApp(firebaseConfig);
 
@@ -365,7 +376,7 @@
         <div class="drop">
             <button class="btn feature" type="button" data-toggle="collapse" data-target="#faqCollapse"
                 aria-expanded="false" aria-controls="faqCollapse">
-                What is NeuTrack, and how does it assist individuals with visual impairments?
+                What is NeuTrack, and <br> how does it assist individuals <br> with visual impairments?
             </button>
             <div class="collapse" id="faqCollapse">
                 <div class="card card-body feature">
@@ -377,7 +388,7 @@
         <div class="drop">
             <button class="btn feature" type="button" data-toggle="collapse" data-target="#faqCollapse2"
                 aria-expanded="false" aria-controls="faqCollapse2">
-                Is NeuTrack only for individuals with visual impairments, or can it be used by others?      
+                Is NeuTrack only for individuals <br> with visual impairments, or can <br> it be used by others?      
             </button>
             <div class="collapse" id="faqCollapse2">
                 <div class="card card-body feature">
@@ -389,7 +400,7 @@
         <div class="drop">
             <button class="btn feature" type="button" data-toggle="collapse" data-target="#faqCollapse3"
                 aria-expanded="false" aria-controls="faqCollapse3">
-                What algorithm used in the GPS Tracking feature?      
+                What algorithm used in <br> the GPS Tracking feature?      
             </button>
             <div class="collapse" id="faqCollapse3">
                 <div class="card card-body feature">
