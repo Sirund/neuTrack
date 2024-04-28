@@ -21,7 +21,7 @@ from gpiozero import Button, DistanceSensor, Buzzer
 class Neutrack():                   
     def  __init__(self):
         #Setup pin for button, buzzer, and ultrasonic
-        self.button = Button(20, hold_time=2)
+        self.button = Button(20)
         self.buzzer = Buzzer(23)
         self.ultrasonic = DistanceSensor(echo=17, trigger=4, threshold_distance=0.5)
 
@@ -122,7 +122,7 @@ class Neutrack():
     def get_path(self):
         end_location = self.get_destination()
 
-        while True:
+        while self.button.is_pressed:
             try:
                 lat, lng = self.location()
                 start_location = f"{lat}, {lng}"
@@ -174,7 +174,7 @@ class Neutrack():
         self.vs.stop()
          
     def face_recog(self):
-        while True:
+        while self.button.is_pressed:
             frame = self.vs.read()
             frame = imutils.resize(frame, width=500)
             boxes = face_recognition.face_locations(frame)
