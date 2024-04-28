@@ -21,7 +21,7 @@ from gpiozero import Button, DistanceSensor, Buzzer
 class Neutrack():                   
     def  __init__(self):
         #Setup pin for button, buzzer, and ultrasonic
-        self.button = Button(20)
+        self.change_mode = Button(20)
         self.buzzer = Buzzer(23)
         self.ultrasonic = DistanceSensor(echo=17, trigger=4, threshold_distance=0.5)
 
@@ -56,20 +56,19 @@ class Neutrack():
             else:
                 self.buzzer.off()
                 print("out of range")    
-
+        
     def location(self):
-        while True:
-            pynmea2.NMEAStreamReader()
-            newdata = self.ser.readline()
-            
-            if newdata[0:6] == b"$GPRMC":
-                newmsg = pynmea2.parse(newdata.decode('utf-8'))
-                # newmsg = pynmea2.parse(newdata.decode('latin-1'))
-                lat=newmsg.latitude
-                lng=newmsg.longitude
-                gps = "Latitude=" + str(lat) + "and Longitude=" + str(lng)
-                print(gps)
-                return lat, lng
+        pynmea2.NMEAStreamReader()
+        newdata = self.ser.readline()
+        
+        if newdata[0:6] == b"$GPRMC":
+            newmsg = pynmea2.parse(newdata.decode('utf-8'))
+            # newmsg = pynmea2.parse(newdata.decode('latin-1'))
+            lat=newmsg.latitude
+            lng=newmsg.longitude
+            gps = "Latitude=" + str(lat) + "and Longitude=" + str(lng)
+            print(gps)
+            return lat, lng
 
     def select_mode(self):
         r = sr.Recognizer()
@@ -77,12 +76,24 @@ class Neutrack():
         with sr.Microphone() as source:
             r.adjust_for_ambient_noise(source)         
             print("Please say something...")  
-            os.system(f"espeak 'What can i do for you sir...'")       
+            os.system(f"espeak 'Select mode:'")       
+            os.system(f"espeak '1. Get directions 2. Face recognition 3. Add New Face 4. Let me see the world'")   
             audio = r.listen(source)
                 
             try:
                 mode = r.recognize_google(audio)
-                print("Mode : \n " + mode)  
+                print("Mode : \n " + mode)
+                if mode == "one":
+                    self.get_path()
+                elif mode == "two":
+                    self.face_recog()
+                elif mode == "three":
+                    self.headshot()
+                elif mode == "four":
+                    self.srf()
+                else:
+                    os.system(f"espeak 'Sorry, I didn't catch that. Could you repeat, please?'")
+                    self.select_mode()
             except Exception as e:
                 os.system(f"espeak 'Sorry, I didn't catch that. Could you repeat, please?'")
                 print("Error : " + str(e))
@@ -122,7 +133,7 @@ class Neutrack():
     def get_path(self):
         end_location = self.get_destination()
 
-        while self.button.is_pressed:
+        while not self.button.is_pressed:
             try:
                 lat, lng = self.location()
                 start_location = f"{lat}, {lng}"
@@ -165,7 +176,6 @@ class Neutrack():
         self.fps = FPS().start() 
             
     def shutdown_face(self):
-
         self.fps.stop()
         print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
         print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
@@ -174,7 +184,7 @@ class Neutrack():
         self.vs.stop()
          
     def face_recog(self):
-        while self.button.is_pressed:
+        while not self.button.is_pressed:
             frame = self.vs.read()
             frame = imutils.resize(frame, width=500)
             boxes = face_recognition.face_locations(frame)
@@ -226,9 +236,9 @@ class Neutrack():
             self.fps.update()
         
         self.shutdown_face()
+        self.select_mode()
 
     def train_face(self):
-        self.shutdown_face() #destroy existing window
         print("[INFO] start processing faces...")
         imagePaths = list(paths.list_images("dataset"))
 
@@ -257,6 +267,9 @@ class Neutrack():
         f = open("encodings.pickle", "wb")
         f.write(pickle.dumps(data))
         f.close()
+
+        os.system(f"espeak 'Training complete'")
+        self.select_mode()
 
     def headshot(self):
         self.shutdown_face()
@@ -293,6 +306,7 @@ class Neutrack():
         cam.release()
 
         cv2.destroyAllWindows()
+        self.train_face()
 
 if __name__ == '__main__':
     neutrack = Neutrack()
