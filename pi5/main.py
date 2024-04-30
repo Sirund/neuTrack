@@ -21,7 +21,7 @@ from gpiozero import Button, DistanceSensor, Buzzer
 class Neutrack():                   
     def  __init__(self):
         #Setup pin for button, buzzer, and ultrasonic
-        self.change_mode = Button(20)
+        self.button = Button(20)
         self.buzzer = Buzzer(23)
         self.ultrasonic = DistanceSensor(echo=17, trigger=4, threshold_distance=0.5)
 
@@ -149,15 +149,16 @@ class Neutrack():
                 os.system(f"espeak 'Duration is {route['duration']['text']}'")
                 print("Directions:")
                 for step in route['steps']:
+                    if self.button.is_pressed:
+                        break
+
                     instructions = re.sub('<.*?>', '', step['html_instructions'])
                     print(instructions)
                     os.system(f"espeak '{instructions}'")
+
                 data = {"LAT": lat, "LNG": lng, "Current Location": route['start_address']}
                 self.db.update(data)
                 print("Data sent")
-                # os.system(f"espeak 'Data sent'")
-                # pprint.pprint(data)
-                # os.system(f"espeak 'Data: {data}'")
             except TypeError as e:
                 print(f"An error occurred: {e}")
                 os.system(f"espeak 'Sorry, i can't give you directions'")
@@ -183,6 +184,25 @@ class Neutrack():
         cv2.destroyAllWindows()
         self.vs.stop()
          
+    def get_name(self):
+        r = sr.Recognizer()
+        
+        with sr.Microphone() as source:
+            r.adjust_for_ambient_noise(source)
+            
+            print("Please enter name: ")
+            os.system(f"espeak 'Please enter new name: '")           
+            audio = r.listen(source)
+            
+            try:
+                text = r.recognize_google(audio)
+                print("New name : \n " + text)
+                return text     
+            except Exception as e: 
+                os.system(f"espeak 'Sorry, I didn't catch that. Could you repeat, please?'")
+                print("Error : " + str(e))
+                self.get_destination()
+
     def face_recog(self):
         while not self.button.is_pressed:
             frame = self.vs.read()
@@ -209,14 +229,7 @@ class Neutrack():
                     if currentname != name:
                         currentname = name
                         print(f" This is {currentname}")
-                        if currentname == "Veronica":
-                            os.system(f"espeak 'This is Veronica Putri, GDE Android and Hackfestn 2024 Final Pitching Judge'")
-                        elif currentname == "Riza":
-                            os.system(f"espeak 'This is Riza Fahmi, GDE Web and Co-Founder of HacktivEight, also Hackfest 2024 Final Pitching Judge'")
-                        elif currentname == "Dimas":
-                            os.system(f"espeak 'This is Dimas Prasetyo, Senior Developer of Telkom Indonesia and Hackfest 2024 Final Pitching Judge'")
-                        else:
-                            os.system(f"espeak 'This is {currentname}'")
+                        os.system(f"espeak 'This is {currentname}'")
 
                 names.append(name)
 
@@ -228,9 +241,9 @@ class Neutrack():
                     .8, (0, 255, 255), 2)
 
             cv2.imshow("Facial Recognition is Running", frame)
-            key = cv2.waitKey(1) & 0xFF
+            # key = cv2.waitKey(1) & 0xFF
 
-            if key == ord("q"):
+            if self.button.is_pressed:
                 break
 
             self.fps.update()
@@ -253,8 +266,7 @@ class Neutrack():
             image = cv2.imread(imagePath)
             rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-            boxes = face_recognition.face_locations(rgb,
-                model="hog")
+            boxes = face_recognition.face_locations(rgb, model="hog")
 
             encodings = face_recognition.face_encodings(rgb, boxes)
 
@@ -273,7 +285,8 @@ class Neutrack():
 
     def headshot(self):
         self.shutdown_face()
-        name = 'Caroline'
+        # name = 'Caroline'
+        name = self.get_name()
 
         cam = cv2.VideoCapture(0)
         cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
@@ -284,20 +297,17 @@ class Neutrack():
 
         print("setup complete")
 
-        while True:
+        os.system(f"espeak 'take ten photo from any angles'")
+        for i in range(10):
             ret, frame = cam.read()
             if not ret:
                 print("failed to grab frame")
+                os.system(f"espeak 'failed to grab frame'")
                 break
-            cv2.imshow("press space to take a photo", frame)
+            cv2.imshow("press button to take a photo", frame)
+            os.system(f"espeak 'press button to take a photo'")
 
-            k = cv2.waitKey(1)
-            if k%256 == 27:
-                # ESC pressed
-                print("Escape hit, closing...")
-                break
-            elif k%256 == 32:
-                # SPACE pressed
+            if self.button.is_pressed:
                 img_name = "dataset/"+ name +"/image_{}.jpg".format(img_counter)
                 cv2.imwrite(img_name, frame)
                 print("{} written!".format(img_name))
