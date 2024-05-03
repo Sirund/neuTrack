@@ -13,14 +13,14 @@ import pynmea2
 #     }
 
 firebaseConfig = {
-  "apiKey": "AIzaSyCY4A7oLi4YiPVMV1VLOw2bHv0487Ww9FU",
-  "authDomain": "gps5-1ffe7.firebaseapp.com",
-  "projectId": "gps5-1ffe7",
-  "storageBucket": "gps5-1ffe7.appspot.com",
-  "messagingSenderId": "1057275623362",
- "appId": "1:1057275623362:web:6fa154dcc3df768c41485b",
-  "measurementId": "G-7NBKMLJHS8",
- "databaseURL": "https://gps5-1ffe7-default-rtdb.firebaseio.com"
+  "apiKey": "AIzaSyBGwuIcJfdcToqX3VqO84W5JPxXoNmHIJM",
+  "authDomain": "gscmb-398aa.firebaseapp.com",
+  "databaseURL": "https://gscmb-398aa-default-rtdb.firebaseio.com",
+  "projectId": "gscmb-398aa",
+  "storageBucket": "gscmb-398aa.appspot.com",
+  "messagingSenderId": "200696319737",
+  "appId": "1:200696319737:web:856b0ca6ffd400c5d39c28",
+  "measurementId": "G-KQB9PNRBTH"
 }
 
 firebase=pyrebase.initialize_app(firebaseConfig)

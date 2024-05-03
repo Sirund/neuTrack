@@ -28,8 +28,40 @@
         }
 
         #map-window {
-            height: 750px;
+            height: 650px;
             background: #2c2c2c;
+            position: relative; 
+        }
+
+        .earth-campaign-banner {
+            position: absolute;
+            top: 20px;
+            left: -300px; 
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #7200ca;
+            z-index: 9999;
+            animation: moveBanner 10s linear infinite;
+        }
+
+        @keyframes moveBanner {
+            0% {
+                left: -300px;
+            }
+            100% {
+                left: 100%; 
+            }
+        }
+
+        section {
+            padding: 30px;
+            margin: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
         }
 
         section {
@@ -176,16 +208,6 @@
             margin-bottom: 50px;
             color: #9a00e8;
         }
-
-        @media only screen and (max-width: 600px) {
-        .location {
-            height: 200px;
-            width: 190px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            }
-        }
-
     </style>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -201,7 +223,9 @@
 
     <div class="top">
         <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Example Image" class="logo">
+
     </div>
+    <div class="earth-campaign-banner"><a href="https://forms.gle/WnuQiVdcCCcvZUyy8">Join our Earth Campaign: From Waste to Wonder!</a></div>
     <div id="map-window">
         <div class="container">
             <div id="map-canvas"></div>
@@ -209,9 +233,6 @@
         <div style="text-align: center; margin-top: 20px;">
             <button  class="btn feature">
                 <a href="path"  class="btn feature">Find the Shortest Path</a>
-            </button>
-            <button  class="btn feature">
-                <a href="https://gpt-video-jidefr.vercel.app/"  class="btn feature">Object Detection</a>
             </button>
 
         </div>
@@ -255,15 +276,14 @@
             }
 
             const firebaseConfig = {
-                "apiKey": "AIzaSyCY4A7oLi4YiPVMV1VLOw2bHv0487Ww9FU",
-                "authDomain": "gps5-1ffe7.firebaseapp.com",
-                "projectId": "gps5-1ffe7",
-                "storageBucket": "gps5-1ffe7.appspot.com",
-                "messagingSenderId": "1057275623362",
-                "appId": "1:1057275623362:web:6fa154dcc3df768c41485b",
-                "measurementId": "G-7NBKMLJHS8",
-                "databaseURL": "https://gps5-1ffe7-default-rtdb.firebaseio.com"
-            };             
+                "apiKey": "AIzaSyArU2hVkqA7CCj00t26YzxSjyYx4TdmLs0",
+                "authDomain": "gps-tracker2-50503.firebaseapp.com",
+                "databaseURL": "https://gps-tracker2-50503-default-rtdb.firebaseio.com",
+                "projectId": "gps-tracker2-50503",
+                "storageBucket": "gps-tracker2-50503.appspot.com",
+                "messagingSenderId": "118394749599",
+                "appId": "1:118394749599:web:359b51af670a0d4e2ad8aa"
+              };              
 
             firebase.initializeApp(firebaseConfig);
 
@@ -376,7 +396,7 @@
         <div class="drop">
             <button class="btn feature" type="button" data-toggle="collapse" data-target="#faqCollapse"
                 aria-expanded="false" aria-controls="faqCollapse">
-                What is NeuTrack, and <br> how does it assist individuals <br> with visual impairments?
+                What is NeuTrack, and how does it assist individuals with visual impairments?
             </button>
             <div class="collapse" id="faqCollapse">
                 <div class="card card-body feature">
@@ -388,7 +408,7 @@
         <div class="drop">
             <button class="btn feature" type="button" data-toggle="collapse" data-target="#faqCollapse2"
                 aria-expanded="false" aria-controls="faqCollapse2">
-                Is NeuTrack only for individuals <br> with visual impairments, or can <br> it be used by others?      
+                Is NeuTrack only for individuals with visual impairments, or can it be used by others?      
             </button>
             <div class="collapse" id="faqCollapse2">
                 <div class="card card-body feature">
@@ -400,7 +420,7 @@
         <div class="drop">
             <button class="btn feature" type="button" data-toggle="collapse" data-target="#faqCollapse3"
                 aria-expanded="false" aria-controls="faqCollapse3">
-                What algorithm used in <br> the GPS Tracking feature?      
+                What algorithm used in the GPS Tracking feature?      
             </button>
             <div class="collapse" id="faqCollapse3">
                 <div class="card card-body feature">
