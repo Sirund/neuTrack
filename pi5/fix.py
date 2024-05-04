@@ -5,13 +5,20 @@ import time
 import pickle
 import pprint
 import serial
+import engine
 import imutils
 import pynmea2
+import pyttsx3
+import pathlib
 import pyrebase
 import requests
+import textwrap
+import PIL.Image
 import face_recognition
 from imutils import paths
 from imutils.video import FPS
+import speech_recognition as sr
+import google.generativeai as genai
 from imutils.video import VideoStream
 from gpiozero import Button, DistanceSensor, Buzzer
 
@@ -23,16 +30,22 @@ sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
 class Neutrack():                   
     def  __init__(self):
         #Setup pin for button, buzzer, and ultrasonic
-        #self.button = Button(20)
-        #self.buzzer = Buzzer(23)
-        #self.ultrasonic = DistanceSensor(echo=17, trigger=4, threshold_distance=0.5)
+        self.button = Button(21)
+        self.buzzer = Buzzer(23)
+        self.ultrasonic = DistanceSensor(echo=17, trigger=4, threshold_distance=0.5)
 
         #Setup port for gps
         self.ser = serial.Serial('/dev/ttyAMA0',
 		                    baudrate=9600,
 		                    parity=serial.PARITY_NONE,
 		                    stopbits=serial.STOPBITS_ONE)
-		                    
+
+        #Setup for text to speech                    
+        self.engine = pyttsx3.init()
+        voices = engine.getProperty('voices')
+        self.engine.setProperty('voice', 'en-us')
+        self.engine.setProperty('rate', 130)
+
 		#Setup firebase
         firebaseConfig = {
             "apiKey": "AIzaSyBGwuIcJfdcToqX3VqO84W5JPxXoNmHIJM",
@@ -48,8 +61,59 @@ class Neutrack():
         firebase = pyrebase.initialize_app(firebaseConfig)
         self.db = firebase.database()
         self.api_key = "AIzaSyBgAmxCkLFhzG8xA2lo_4XYU2es8Y5NCXY"
+
+        #Setup gemini
+        GOOGLE_API_KEY = "AIzaSyCBQ5PcFr7XnFz6HZDfDpS-RuFjxhp0WD8"
+        genai.configure(api_key=GOOGLE_API_KEY)
         
         print("setup complete")
+
+    def speak(self, text):
+        print(text)
+        self.engine.say(text)
+        self.engine.runAndWait()
+
+    def select_mode(self):
+        r = sr.Recognizer()
+        with sr.Microphone() as source:
+            r.adjust_for_ambient_noise(source)
+            print("Select mode: ")
+            self.speak("Select mode: ")
+
+            print("1. Get directions")
+            self.speak("Get directions")
+            print("2. New face")
+            self.speak("New face")
+            print("3. Face recognition")
+            self.speak("Face recognition")
+            print("4. Let me see the world")
+            self.speak("Let me see the world")
+            print("5. Answer my question")
+            self.speak("Answer my question")
+            audio = r.listen(source)
+            mode = r.recognize_google(audio)
+            try:
+                if mode == "Get directions":
+                    self.get_path()
+                elif mode == "New face":
+                    self.new_face()
+                elif mode == "Face recognition":
+                    self.face_recog()
+                elif mode == "Let me see the world":
+                    self.vision()
+                elif mode == "Answer my question":
+                    self.gemini()
+            except Exception as e:
+                print("Error : " + str(e))
+
+    def srf(self):
+        while True:
+            if self.ultrasonic.distance < 0.5:
+                self.buzzer.on()
+                print("in range")
+            else:
+                self.buzzer.off()
+                print("out of range")     
  
     def get_directions(self, start_location, end_location):
         print("get direction")
@@ -76,48 +140,87 @@ class Neutrack():
                 return lat, lng
             except pynmea2.ParseError as e:
                 print(f"Parse error: {e}")
+                self.speak("gps error")
+
+    def get_destination(self):
+        r = sr.Recognizer()
+        with sr.Microphone() as source:
+            r.adjust_for_ambient_noise(source)
+            print("Please enter your destination: ")
+            self.speak("Please enter your destination: ")
+            audio = r.listen(source)
+            destination = r.recognize_google(audio)
+            return destination
                 
     def get_path(self):
-        end_location = input("Please enter your destination: ")
+        end_location = self.get_destination()
         while True:
             try:
                 lat, lng = self.get_location()
+                if (lat == 0.0) and (lng == 0.0):
+                    print("gps lost signal")
+                    self.speak("gps lost signal")
+                    break
                 start_location = f"{lat}, {lng}"
                 print(start_location)
                 directions = self.get_directions(start_location, end_location)
                 route = directions['routes'][0]['legs'][0]
                 print(f"Current location: {route['start_address']}")
-                #os.system(f"espeak 'Current location is {route['start_address']}'")
+                self.speak("Current location is {route['start_address']}")
                 print(f"Destination: {route['end_address']}")
-                #os.system(f"espeak 'Destination is {route['end_address']}'")
+                self.speak("Destination is {route['end_address']}")
                 print(f"Distance: {route['distance']['text']}")
-                #os.system(f"espeak 'Distance is {route['distance']['text']}'")
+                self.speak("Distance is {route['distance']['text']}")
                 print(f"Duration: {route['duration']['text']}")
-                #os.system(f"espeak 'Duration is {route['duration']['text']}'")
+                self.speak("Duration is {route['duration']['text']}")
                 print("Directions:")
                 for step in route['steps']:
                     instructions = re.sub('<.*?>', '', step['html_instructions'])
                     print(instructions)
-                    #os.system(f"espeak '{instructions}'")
+                    self.speak(instructions)
+                    self.srf()
+                    if self.button.is_pressed:
+                        break
                 data = {"LAT": lat, "LNG": lng, "Current Location": route['start_address']}
                 self.db.update(data)
                 print("Data sent")
-                #os.system(f"espeak 'Data sent'")
-                pprint.pprint(data)
-                #os.system(f"espeak 'Data: {data}'")
+                self.speak("Data sent")
             except TypeError as e:
                 print(f"An error occurred: {e}")
-                #os.system(f"espeak 'An error occurred: {e}'")
-                
+                self.speak(f"error to get path")
+                self.select_mode()
+            
+            if self.button.is_pressed:
+                break
+        
+        self.select_mode()
+
+    def get_name(self):
+        r = sr.recognizer()
+        with sr.Microphone() as source:
+            r.adjust_for_ambient_noise(source)
+            print("Please enter name: ")
+            self.speak("Please enter name: ")
+            audio = r.listen(source)
+            name = r.recognize_google(audio)
+            return name
+
     def new_face(self):
-        name = input("Your name: ")
+        name = self.get_name()
         
         cam = cv2.VideoCapture(0)
-        cv2.namedWindow("press space to take a photo", cv2.WINDOW_NORMAL)
-        cv2.resizeWindow("press space to take a photo", 500, 300)
+        cv2.namedWindow("press button to take a photo", cv2.WINDOW_NORMAL)
+        cv2.resizeWindow("press button to take a photo", 500, 300)
 
         img_counter = 0
 
+        folder_path = 'dataset/' + name
+
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            print("Folder created successfully.")
+        else:
+            print("Folder already exists.")
         while img_counter != 10:
             ret, frame = cam.read()
             if not ret:
@@ -125,13 +228,8 @@ class Neutrack():
                 break
             cv2.imshow("press space to take a photo", frame)
 
-            k = cv2.waitKey(1)
-            if k%256 == 27:
-                # ESC pressed
-                print("Escape hit, closing...")
-                break
-            elif k%256 == 32:
-                # SPACE pressed
+            if self.button.is_pressed:
+                # BUTTON pressed
                 img_name = "dataset/"+ name +"/image_{}.jpg".format(img_counter)
                 cv2.imwrite(img_name, frame)
                 print("{} written!".format(img_name))
@@ -205,7 +303,10 @@ class Neutrack():
 
                     if currentname != name:
                         currentname = name
-                        print(currentname)
+                        print(f" This is {currentname}")
+                        self.speak(f"This is {currentname}")
+                
+                print(f"this is {name}")
 
                 names.append(name)
 
@@ -217,8 +318,7 @@ class Neutrack():
                             .8, (0, 255, 255), 2)
                             
             cv2.imshow("Facial Recognition is Running", frame)
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord("q"):
+            if self.button.is_pressed:
                 break
 
             fps.update()
@@ -229,9 +329,50 @@ class Neutrack():
 
         cv2.destroyAllWindows()
         vs.stop()
-                
+        self.select_mode()
+
+    def get_question(self):
+        r = sr.recognizer()
+        with sr.Microphone() as source:
+            r.adjust_for_ambient_noise(source)
+            print("Please enter your question: ")
+            self.speak("Please enter your question: ")
+            audio = r.listen(source)
+            question = r.recognize_google(audio)
+            return question
+        
+    def gemini(self):
+        question = self.get_question()
+        model = genai.GenerativeModel('gemini-pro')
+        response = model.generate_content(question)
+        print(response)
+        self.speak(response.text)
+        self.select_mode()
+
+    def vision(self):
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            print("Error: Could not open camera.")
+            self.speak("Error: Could not open camera.")
+            self.select_mode()
+        
+        ret, frame = cap.read()
+        if ret:
+            cv2.imwrite('captured_image.jpg', frame)
+            print("Image saved as 'captured_image.jpg'")
+
+        cap.release()
+
+        img = PIL.Image.open("captured_image.jpg")
+        model = genai.GenerativeModel('gemini-pro-vision')
+        response = model.generate_content(img)
+        print(response)
+        self.speak(response.text)
+        self.select_mode()
+
+
 if __name__ == '__main__':
     neutrack = Neutrack()
-    neutrack.face_recog()
+    neutrack.select_mode()
     
 
