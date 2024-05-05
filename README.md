@@ -67,6 +67,100 @@ This tutorial will guide you through the installation process of the NeuTrack AI
 Below is an overview of the GPIO pins for Raspberry Pi
 ![GPIO Pinout Diagram](https://github.com/Sirund/neuTrack/assets/120204570/dfba7d68-fc05-4084-888c-73b71fdbf526)
 
+### Ultrasonic, Button and Buzzer Setup Guide
+This guide will walk you through the process of setting up an Ultrasonic Sensor, Button, and Buzzer on your Raspberry Pi.
+
+#### Connect the Ultrasonic Sensor to the Raspberry Pi:
+| Raspberry Pi           |  Ultrasonic          |
+|------------------------|----------------------|
+| 5V (Pin 2 or 4)        | VCC                  |
+| Ground (Pin 30)        | GND                  |
+| GPIO 17                | Trig                 |
+| GPIO 4                 | Echo                 |
+
+#### Connect the Button to the Raspberry Pi:
+| Raspberry Pi           |  Button              |
+|------------------------|----------------------|
+| GPIO 23                | One Leg              |
+| Ground (Pin 39)        | Other Leg            |
+
+#### Connect the Buzzer to the Raspberry Pi:
+| Raspberry Pi           |  Ultrasonic          |
+|------------------------|----------------------|
+| 5V (Pin 2 or 4)        | Positive             |
+| Ground (Pin 30)        | Negative             |
+
+### GPS Setup Guide
+This guide will walk you through the process of setting up a GPS module on your Raspberry Pi.
+
+#### Hardware Connections
+Here are the connections for the NEO-6M GPS module with the Raspberry Pi:
+| Raspberry Pi           | NEO-6M GPS Module   |
+|------------------------|----------------------|
+| 5V (Pin 2 or 4)     | VCC       |
+| Ground (Pin 6 or 9 or 14) | GND    |
+| TX (GPIO 14 - UART0_TXD) | RX     |
+| RX (GPIO 15 - UART0_RXD) | TX (Not required in our case)|
+
+#### Get Data From GPS
+Now here we need to modify few things. At first we need to edit the /boot/config.txt file. Now you need to open this file in any text editor. Here I am using nano:
+```bash
+sudo nano /boot/config.txt
+```
+At the end of the file add the follwing lines:
+```bash
+dtparam=spi=on
+dtoverlay=pi3-disable-bt
+core_freq=250
+enable_uart=1
+force_turbo=1
+```
+Now save this by typing ctrl +x, then type y and press enter.
+
+Raspbian uses the UART as a serial console and so we need to turn off that functionality. To do so we need to change the /boot/cmdline.txt file. For safety before editing the file make a backup of that using the following command:
+```bash
+sudo cp /boot/firmware/cmdline.txt /boot/firmware/cmdline_backup.txt
+```
+Now to edit that file open that in text editor:
+```bash
+sudo nano /boot/cmdline.txt
+```
+Replace the content with the follwing line (delete everything in it and write down the following content):
+```bash
+dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait quiet splash plymouth.igno
+```
+Now save this by typing ctrl +x, then type y and press enter.
+Now reboot pi using:
+```bash
+sudo reboot
+```
+Now, before we write the Python code to retrieve GPS data, we need to set up a few things again. By default, the Raspberry Pi uses the serial port for "console" login. So, if we intend to use the serial port to receive data from the GPS module, we need to disable the console login. In Raspberry Pi 3, there are two serial ports: serial0 and serial1. However, serial0 is mapped to GPIO pins 14 and 15. Therefore, we'll be using serial0. To identify which port is associated with serial0, use the following command:
+```bash
+ls -l /dev
+```
+
+There are two possible outputs:
+- If your output looks like this:
+![s1](https://github.com/Sirund/neuTrack/assets/120204570/0f7396e0-73d4-4edb-96b0-a0c1a421088f)
+
+As you can see serial0 is linked with ttyAMA0. So to disable the console you need to use the follwing commands:
+```bash
+sudo systemctl stop serial-getty@ttyAMA0.service
+sudo systemctl disable serial-getty@ttyAMA0.service
+```
+
+- But if your output looks like this:
+![s2](https://github.com/Sirund/neuTrack/assets/120204570/be3f101f-f309-43be-9643-ab76e9edc3d3)
+
+That means serial0 is linked with ttyS0. So to disable the console you need to use the follwing commands:
+```bash
+sudo systemctl stop serial-getty@ttyS0.service
+sudo systemctl disable serial-getty@ttyS0.service
+```
+Now we need to install a python library:
+```bash
+pip install pynmea2
+```
 ### Face Recognition Setup Guide
 This guide will help you set up face recognition using Python and the `face_recognition` library.
 
@@ -156,75 +250,33 @@ The change the number on CONF_SWAPSIZE = 2048 to CONF_SWAPSIZE=100. Having done 
 sudo systemctl restart dphys-swapfile
 ```
 
-### GPS Setup Guide
-This guide will walk you through the process of setting up a GPS module on your Raspberry Pi.
+### Speech Recognition Setup Guide for Raspberry Pi
 
-#### Hardware Connections
-Here are the connections for the NEO-6M GPS module with the Raspberry Pi:
-| Raspberry Pi           | NEO-6M GPS Module   |
-|------------------------|----------------------|
-| 3.3V (Pin 1 or 17)     | VCC       |
-| Ground (Pin 6 or 9 or 14) | GND    |
-| TX (GPIO 14 - UART0_TXD) | RX     |
-| RX (GPIO 15 - UART0_RXD) | TX (Not required in our case)|
-
-#### Get Data From GPS
-Now here we need to modify few things. At first we need to edit the /boot/config.txt file. Now you need to open this file in any text editor. Here I am using nano:
+This guide will walk you through the process of setting up speech recognition on your Raspberry Pi using Python.
 ```bash
-sudo nano /boot/config.txt
-```
-At the end of the file add the follwing lines:
-```bash
-dtparam=spi=on
-dtoverlay=pi3-disable-bt
-core_freq=250
-enable_uart=1
-force_turbo=1
-```
-Now save this by typing ctrl +x, then type y and press enter.
-
-Raspbian uses the UART as a serial console and so we need to turn off that functionality. To do so we need to change the /boot/cmdline.txt file. For safety before editing the file make a backup of that using the following command:
-```bash
-sudo cp /boot/firmware/cmdline.txt /boot/firmware/cmdline_backup.txt
-```
-Now to edit that file open that in text editor:
-```bash
-sudo nano /boot/cmdline.txt
-```
-Replace the content with the follwing line (delete everything in it and write down the following content):
-```bash
-dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait quiet splash plymouth.igno
-```
-Now save this by typing ctrl +x, then type y and press enter.
-Now reboot pi using:
-```bash
-sudo reboot
-```
-Now, before we write the Python code to retrieve GPS data, we need to set up a few things again. By default, the Raspberry Pi uses the serial port for "console" login. So, if we intend to use the serial port to receive data from the GPS module, we need to disable the console login. In Raspberry Pi 3, there are two serial ports: serial0 and serial1. However, serial0 is mapped to GPIO pins 14 and 15. Therefore, we'll be using serial0. To identify which port is associated with serial0, use the following command:
-```bash
-ls -l /dev
+sudo apt-get install portaudio19-dev python3-all-dev && sudo pip install pyaudio
+sudo apt install flac
+sudo pip install SpeechRecognition
 ```
 
-There are two possible outputs:
-- If your output looks like this:
-![s1](https://github.com/Sirund/neuTrack/assets/120204570/0f7396e0-73d4-4edb-96b0-a0c1a421088f)
+### Gemini Pro Setup Guide
 
-As you can see serial0 is linked with ttyAMA0. So to disable the console you need to use the follwing commands:
+This guide will walk you through the process of setting up Gemini Pro and Gemini Pro Vision on your system.
 ```bash
-sudo systemctl stop serial-getty@ttyAMA0.service
-sudo systemctl disable serial-getty@ttyAMA0.service
+pip install -U google-generativeai
 ```
 
-- But if your output looks like this:
-![s2](https://github.com/Sirund/neuTrack/assets/120204570/be3f101f-f309-43be-9643-ab76e9edc3d3)
+### Getting Started
+Open the terminal and use the following command:
+```bash
+git clone https://github.com/Sirund/neuTrack.git
+cd neuTrack/pi5
+```
 
-That means serial0 is linked with ttyS0. So to disable the console you need to use the follwing commands:
+to run the code you can use this command:
 ```bash
-sudo systemctl stop serial-getty@ttyS0.service
-sudo systemctl disable serial-getty@ttyS0.service
+python3 main.py
 ```
-Now we need to install a python library:
-```bash
-pip install pynmea2
-```
+
+
 
